@@ -9,25 +9,27 @@ def main
   opt.on('-l', 'show number of lines') { option[:l] = true }
   opt.parse!(ARGV)
 
-  if ARGV != []
-    files = ARGV
-  else
+  standard_input = false
+  if ARGV.empty?
     files = []
     files << $stdin.read
+    standard_input = true
+  else
+    files = ARGV
   end
 
-  number_of_lines, number_of_words, sizes = count_lines_words_sizes(files)
+  number_of_lines, number_of_words, sizes = count_lines_words_sizes(files, standard_input)
 
   if option[:l]
-    l_option_output(number_of_lines, files)
+    l_option_output(number_of_lines, files, standard_input)
   else
-    output(number_of_lines, number_of_words, sizes, files)
+    output(number_of_lines, number_of_words, sizes, files, standard_input)
   end
 end
 
-def count_lines_words_sizes(files)
-  case ARGV
-  when []
+def count_lines_words_sizes(files, standard_input)
+  case standard_input
+  when true
     number_of_lines = files.map { |line| line.count("\n") }
     number_of_words = files.map { |word| word.split(' ').size }
     sizes = files.map(&:bytesize)
@@ -39,10 +41,10 @@ def count_lines_words_sizes(files)
   [number_of_lines, number_of_words, sizes]
 end
 
-def l_option_output(number_of_lines, files)
+def l_option_output(number_of_lines, files, standard_input)
   files.size.times do |i|
     print number_of_lines[i].to_s.rjust(8)
-    print " #{files[i]}" if ARGV != []
+    print " #{files[i]}" unless standard_input
     puts
   end
   return if files.size == 1
@@ -51,12 +53,12 @@ def l_option_output(number_of_lines, files)
   print ' total'
 end
 
-def output(number_of_lines, number_of_words, sizes, files)
+def output(number_of_lines, number_of_words, sizes, files, standard_input)
   files.size.times do |i|
     print number_of_lines[i].to_s.rjust(8)
     print number_of_words[i].to_s.rjust(8)
     print sizes[i].to_s.rjust(8)
-    print " #{files[i]}" if ARGV != []
+    print " #{files[i]}" unless standard_input
     puts
   end
 
