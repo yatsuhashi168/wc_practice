@@ -9,42 +9,37 @@ def main
   opt.on('-l', 'show number of lines') { option[:l] = true }
   opt.parse!(ARGV)
 
-  standard_input = false
-  if ARGV.empty?
+  files_name = ARGV
+
+  if files_name.empty?
     files = []
     files << $stdin.read
-    standard_input = true
   else
-    files = ARGV
+    files = files_name.map do |file|
+      File.read(file)
+    end
   end
 
-  number_of_lines, number_of_words, sizes = count_lines_words_sizes(files, standard_input)
+  number_of_lines, number_of_words, sizes = count_lines_words_sizes(files)
 
   if option[:l]
-    l_option_output(number_of_lines, files, standard_input)
+    l_option_output(number_of_lines, files, files_name)
   else
-    output(number_of_lines, number_of_words, sizes, files, standard_input)
+    output(number_of_lines, number_of_words, sizes, files, files_name)
   end
 end
 
-def count_lines_words_sizes(files, standard_input)
-  case standard_input
-  when true
-    number_of_lines = files.map { |line| line.count("\n") }
-    number_of_words = files.map { |word| word.split(' ').size }
-    sizes = files.map(&:bytesize)
-  else
-    number_of_lines = files.map { |line| IO.read(line).count("\n") }
-    number_of_words = files.map { |word| IO.read(word).split(' ').size }
-    sizes = files.map { |size| IO.read(size).size }
-  end
+def count_lines_words_sizes(files)
+  number_of_lines = files.map { |line| line.count("\n") }
+  number_of_words = files.map { |word| word.split(' ').size }
+  sizes = files.map(&:bytesize)
   [number_of_lines, number_of_words, sizes]
 end
 
-def l_option_output(number_of_lines, files, standard_input)
+def l_option_output(number_of_lines, files, files_name)
   files.size.times do |i|
     print number_of_lines[i].to_s.rjust(8)
-    print " #{files[i]}" unless standard_input
+    print " #{files_name[i]}" unless files_name.empty?
     puts
   end
   return if files.size == 1
@@ -53,12 +48,12 @@ def l_option_output(number_of_lines, files, standard_input)
   print ' total'
 end
 
-def output(number_of_lines, number_of_words, sizes, files, standard_input)
+def output(number_of_lines, number_of_words, sizes, files, files_name)
   files.size.times do |i|
     print number_of_lines[i].to_s.rjust(8)
     print number_of_words[i].to_s.rjust(8)
     print sizes[i].to_s.rjust(8)
-    print " #{files[i]}" unless standard_input
+    print " #{files_name[i]}" unless files_name.empty?
     puts
   end
 
